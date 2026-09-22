@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Essay Grade Visualizer & Assistant</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts & FontAwesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            heading: ['Space Grotesk', 'sans-serif'],
+          },
+          colors: {
+            gradeF: '#ef4444',
+            gradeD: '#f97316',
+            gradeC: '#eab308',
+            gradeB: '#3b82f6',
+            gradeA: '#10b981',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    .grade-btn-active {
+      ring-width: 3px;
+      transform: scale(1.03);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 8px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 8px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans antialiased text-slate-800 bg-slate-50">
+
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-200">
+          <i class="fa-solid font-bold text-xl fa-graduation-cap"></i>
+        </div>
+        <div>
+          <h1 class="font-heading font-bold text-xl text-slate-900 leading-none">EssayLab</h1>
+          <p class="text-xs text-slate-500 mt-0.5">Interactive Grade Demo & Writing Guide</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+          <i class="fa-solid fa-sparkles mr-1.5 text-xs text-indigo-500"></i> Powered by Gemini AI
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    
+    <!-- Hero Banner -->
+    <section class="bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+      <div class="absolute -right-10 -bottom-10 opacity-10 text-white pointer-events-none">
+        <i class="fa-solid fa-pen-nib text-[220px]"></i>
+      </div>
+      <div class="relative z-10 max-w-3xl">
+        <span class="inline-block px-3 py-1 bg-indigo-500/30 text-indigo-200 rounded-full text-xs font-semibold tracking-wide uppercase mb-3 border border-indigo-400/30">
+          For Students & Teachers
+        </span>
+        <h2 class="font-heading text-2xl sm:text-4xl font-extrabold tracking-tight text-white mb-3">
+          See How Essay Grading Really Works
+        </h2>
+        <p class="text-indigo-100 text-sm sm:text-base leading-relaxed">
+          Select a grade level from <strong class="text-red-400">F</strong> to <strong class="text-emerald-400">A</strong> to generate a sample essay. Learn what teachers look for regarding capitalization, punctuation, sentence structure, and vocabulary!
+        </p>
+      </div>
+    </section>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+      <!-- Left Column: Controls (4 cols) -->
+      <div class="lg:col-span-5 space-y-6">
+        
+        <!-- Controls Card -->
+        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
+          <h3 class="font-heading text-lg font-bold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-sliders text-indigo-600"></i> Generator Settings
+          </h3>
+
+          <!-- Essay Topic Input -->
+          <div>
+            <label for="topicInput" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+              1. Choose an Essay Topic
+            </label>
+            <textarea id="topicInput" rows="3" 
+              class="w-full rounded-xl border border-slate-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm"
+              placeholder="e.g., Why is recycling important for our planet?"></textarea>
+            
+            <!-- Quick Topic Ideas -->
+            <div class="mt-2.5 flex flex-wrap gap-1.5">
+              <span class="text-xs text-slate-400 py-1">Quick ideas:</span>
+              <button onclick="setTopic('Should students have homework on weekends?')" class="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 px-2.5 py-1 rounded-lg transition-colors">Homework</button>
+              <button onclick="setTopic('The impact of social media on teenagers')" class="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 px-2.5 py-1 rounded-lg transition-colors">Social Media</button>
+              <button onclick="setTopic('Why video games can actually be good for learning')" class="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 px-2.5 py-1 rounded-lg transition-colors">Video Games</button>
+            </div>
+          </div>
+
+          <!-- Academic Level Selection -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+              2. Target Academic Level
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" onclick="setAcademicLevel('Middle School')" id="levelMS" 
+                class="level-btn py-2 px-3 text-xs font-semibold rounded-xl border border-indigo-600 bg-indigo-50 text-indigo-700 transition-all flex items-center justify-center gap-2">
+                <i class="fa-solid fa-school text-xs"></i> Middle School
+              </button>
+              <button type="button" onclick="setAcademicLevel('High School')" id="levelHS" 
+                class="level-btn py-2 px-3 text-xs font-semibold rounded-xl border border-slate-200 bg-white text-slate-600 hover:border-slate-300 transition-all flex items-center justify-center gap-2">
+                <i class="fa-solid fa-graduation-cap text-xs"></i> High School
+              </button>
+            </div>
+          </div>
+
+          <!-- Grade Level Selector -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+              3. Select Target Grade
+            </label>
+            <div class="grid grid-cols-5 gap-2" id="gradeContainer">
+              
+              <!-- Grade F -->
+              <button onclick="selectGrade('F')" id="btnGradeF" class="grade-btn flex flex-col items-center justify-center p-2.5 rounded-xl border-2 transition-all bg-white border-red-200 hover:border-red-500 group">
+                <span class="text-xl font-extrabold text-red-500 group-hover:scale-110 transition-transform">F</span>
+                <span class="text-[10px] text-slate-400 font-semibold mt-0.5">Below 60%</span>
+              </button>
+
+              <!-- Grade D -->
+              <button onclick="selectGrade('D')" id="btnGradeD" class="grade-btn flex flex-col items-center justify-center p-2.5 rounded-xl border-2 transition-all bg-white border-orange-200 hover:border-orange-500 group">
+                <span class="text-xl font-extrabold text-orange-500 group-hover:scale-110 transition-transform">D</span>
+                <span class="text-[10px] text-slate-400 font-semibold mt-0.5">60-69%</span>
+              </button>
+
+              <!-- Grade C -->
+              <button onclick="selectGrade('C')" id="btnGradeC" class="grade-btn flex flex-col items-center justify-center p-2.5 rounded-xl border-2 transition-all bg-white border-yellow-200 hover:border-yellow-500 group">
+                <span class="text-xl font-extrabold text-yellow-600 group-hover:scale-110 transition-transform">C</span>
+                <span class="text-[10px] text-slate-400 font-semibold mt-0.5">70-79%</span>
+              </button>
+
+              <!-- Grade B -->
+              <button onclick="selectGrade('B')" id="btnGradeB" class="grade-btn flex flex-col items-center justify-center p-2.5 rounded-xl border-2 transition-all bg-white border-blue-200 hover:border-blue-500 group">
+                <span class="text-xl font-extrabold text-blue-600 group-hover:scale-110 transition-transform">B</span>
+                <span class="text-[10px] text-slate-400 font-semibold mt-0.5">80-89%</span>
+              </button>
+
+              <!-- Grade A -->
+              <button onclick="selectGrade('A')" id="btnGradeA" class="grade-btn flex flex-col items-center justify-center p-2.5 rounded-xl border-2 transition-all bg-white border-emerald-200 hover:border-emerald-500 group">
+                <span class="text-xl font-extrabold text-emerald-600 group-hover:scale-110 transition-transform">A</span>
+                <span class="text-[10px] text-slate-400 font-semibold mt-0.5">90-100%</span>
+              </button>
+            </div>
+            <p id="gradeDescription" class="mt-3 text-xs text-slate-500 italic bg-slate-50 p-2.5 rounded-lg border border-slate-200/60">
+              Select a grade level above to see its characteristics.
+            </p>
+          </div>
+
+          <!-- Action Button -->
+          <button onclick="generateEssay()" id="generateBtn" 
+            class="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all flex items-center justify-center space-x-2 text-sm">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>Generate Sample Essay</span>
+          </button>
+        </div>
+
+        <!-- Educational Cheat Sheet Sidebar -->
+        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+          <h3 class="font-heading text-base font-bold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-lightbulb text-amber-500"></i> Essay Writing Rules Cheat Sheet
+          </h3>
+          <div class="space-y-3 text-xs text-slate-600">
+            <div class="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100">
+              <span class="font-bold text-indigo-900 block mb-1"><i class="fa-solid fa-font text-indigo-500 mr-1"></i> Capitalization Rules</span>
+              Always capitalize the first letter of sentences, the pronoun "I", and proper nouns (names, specific places, days, months).
+            </div>
+            <div class="p-3 bg-emerald-50/50 rounded-xl border border-emerald-100">
+              <span class="font-bold text-emerald-900 block mb-1"><i class="fa-solid fa-quote-right text-emerald-500 mr-1"></i> Punctuation Essentials</span>
+              Don't create run-on sentences! Use periods to separate full thoughts. Use commas after introductory phrases and before conjunctions (and, but, so).
+            </div>
+            <div class="p-3 bg-amber-50/50 rounded-xl border border-amber-100">
+              <span class="font-bold text-amber-900 block mb-1"><i class="fa-solid fa-layer-group text-amber-500 mr-1"></i> Paragraph Structure (PEEL)</span>
+              <strong>Point:</strong> State your idea. <strong>Evidence:</strong> Give proof. <strong>Explanation:</strong> Explain why it matters. <strong>Link:</strong> Transition to next point.
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Output & Analysis Panel (7 cols) -->
+      <div class="lg:col-span-7 space-y-6">
+        
+        <!-- Empty State Container -->
+        <div id="emptyState" class="bg-white rounded-2xl border-2 border-dashed border-slate-200 p-12 text-center flex flex-col items-center justify-center min-h-[450px]">
+          <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl mb-4">
+            <i class="fa-solid fa-file-pen"></i>
+          </div>
+          <h3 class="font-heading font-bold text-slate-800 text-lg mb-1">Ready to Compare Essays</h3>
+          <p class="text-sm text-slate-500 max-w-md mb-6">
+            Pick a topic and select a grade (F to A) on the left, then click <strong>Generate Sample Essay</strong> to see what essays look like at different performance levels!
+          </p>
+          <button onclick="setTopic('Why recycling is essential for the environment'); selectGrade('C'); generateEssay();" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-xl transition-colors">
+            <i class="fa-solid fa-play mr-1.5"></i> Try Demo with Grade C
+          </button>
+        </div>
+
+        <!-- Loading State Container -->
+        <div id="loadingState" class="hidden bg-white rounded-2xl border border-slate-200 p-12 text-center flex flex-col items-center justify-center min-h-[450px] shadow-sm">
+          <div class="relative w-16 h-16 mb-4">
+            <div class="absolute inset-0 rounded-full border-4 border-indigo-100"></div>
+            <div class="absolute inset-0 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin"></div>
+          </div>
+          <h3 class="font-heading font-bold text-slate-800 text-lg mb-1">Writing Sample Essay...</h3>
+          <p class="text-sm text-slate-500" id="loadingText">Applying specific grammar, capitalization, and structural errors for Grade <span id="loadingGradeBadge" class="font-bold"></span>...</p>
+        </div>
+
+        <!-- Results Container -->
+        <div id="resultState" class="hidden space-y-6">
+          
+          <!-- Essay Display Card -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <!-- Header Bar -->
+            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <span id="badgeGradeDisplay" class="w-10 h-10 rounded-xl flex items-center justify-center text-xl font-extrabold text-white shadow-sm">
+                  A
+                </span>
+                <div>
+                  <h4 class="font-bold text-sm text-white" id="displayTopicTitle">Topic Title</h4>
+                  <p class="text-xs text-slate-400" id="displaySubtitle">High School Level Sample</p>
+                </div>
+              </div>
+              <button onclick="copyEssayText()" class="text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5">
+                <i class="fa-regular fa-copy"></i> <span id="copyBtnText">Copy Essay</span>
+              </button>
+            </div>
+
+            <!-- Essay Content Reader Box -->
+            <div class="p-6 sm:p-8 bg-amber-50/20">
+              <div id="essayTextContent" class="text-slate-800 leading-relaxed font-sans text-sm sm:text-base space-y-4 whitespace-pre-wrap selection:bg-indigo-100 selection:text-indigo-900">
+                <!-- Essay text dynamically injected here -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Teacher's Rubric Breakdown Panel -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+              <h3 class="font-heading text-lg font-bold text-slate-900 flex items-center gap-2">
+                <i class="fa-solid fa-clipboard-check text-indigo-600"></i> Teacher's Rubric & Breakdown
+              </h3>
+              <span class="text-xs text-slate-500 font-medium">Why this essay earned this grade</span>
+            </div>
+
+            <!-- 3 Category Scores Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              
+              <!-- Category 1 -->
+              <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-slate-700 uppercase">Grammar & Mechanics</span>
+                  <span id="grammarScoreBadge" class="text-xs font-extrabold px-2 py-0.5 rounded bg-slate-200 text-slate-700">--</span>
+                </div>
+                <p id="grammarNotes" class="text-xs text-slate-600 leading-normal">Analysis of spelling, punctuation, and capitalization.</p>
+              </div>
+
+              <!-- Category 2 -->
+              <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-slate-700 uppercase">Structure & Flow</span>
+                  <span id="structureScoreBadge" class="text-xs font-extrabold px-2 py-0.5 rounded bg-slate-200 text-slate-700">--</span>
+                </div>
+                <p id="structureNotes" class="text-xs text-slate-600 leading-normal">Analysis of introduction, paragraphs, and transitions.</p>
+              </div>
+
+              <!-- Category 3 -->
+              <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-slate-700 uppercase">Content & Ideas</span>
+                  <span id="contentScoreBadge" class="text-xs font-extrabold px-2 py-0.5 rounded bg-slate-200 text-slate-700">--</span>
+                </div>
+                <p id="contentNotes" class="text-xs text-slate-600 leading-normal">Analysis of arguments, depth, and supporting detail.</p>
+              </div>
+
+            </div>
+
+            <!-- Improvement Tips Box -->
+            <div class="p-4 rounded-xl bg-indigo-50/70 border border-indigo-100">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-900 mb-2 flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-arrow-up text-indigo-600"></i> How to level up to the next grade:
+              </h4>
+              <ul id="improvementTipsList" class="list-disc list-inside text-xs text-indigo-950 space-y-1.5">
+                <!-- Improvement tips injected here -->
+              </ul>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Floating Toast Notification -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center space-x-3 text-xs opacity-0 pointer-events-none transition-all duration-300 z-50">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+    <span id="toastMessage">Action completed successfully!</span>
+  </div>
+
+  <footer class="bg-white border-t border-slate-200 mt-12 py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs text-slate-500">
+      <p>EssayLab — Educational AI Writing Demo for Students and Educators.</p>
+    </div>
+  </footer>
+
+  <script>
+    // State Variables
+    let selectedGrade = 'C';
+    let academicLevel = 'Middle School';
+    let currentEssayText = '';
+
+    const gradeConfig = {
+      'F': {
+        colorClass: 'bg-red-500',
+        badgeBg: 'bg-red-100 text-red-800',
+        borderClass: 'border-red-500',
+        description: 'Grade F (0-59%): Severe grammatical errors, lack of capitalization, missing punctuation, run-ons, no clear structure or thesis.'
+      },
+      'D': {
+        colorClass: 'bg-orange-500',
+        badgeBg: 'bg-orange-100 text-orange-800',
+        borderClass: 'border-orange-500',
+        description: 'Grade D (60-69%): Weak grammar, frequent capitalization mistakes, poor paragraph organization, simple repetition.'
+      },
+      'C': {
+        colorClass: 'bg-yellow-500',
+        badgeBg: 'bg-yellow-100 text-yellow-800',
+        borderClass: 'border-yellow-500',
+        description: 'Grade C (70-79%): Average writing. Basic grammar with occasional mistakes, simple sentence structure, predictable ideas.'
+      },
+      'B': {
+        colorClass: 'bg-blue-600',
+        badgeBg: 'bg-blue-100 text-blue-800',
+        borderClass: 'border-blue-600',
+        description: 'Grade B (80-89%): Good grammar and capitalization, clear intro/body/conclusion, strong evidence, good vocabulary.'
+      },
+      'A': {
+        colorClass: 'bg-emerald-600',
+        badgeBg: 'bg-emerald-100 text-emerald-800',
+        borderClass: 'border-emerald-600',
+        description: 'Grade A (90-100%): Flawless mechanics, sophisticated vocabulary, strong thesis statement, smooth transitions, compelling reasoning.'
+      }
+    };
+
+    // Initialize UI on load
+    window.addEventListener('DOMContentLoaded', () => {
+      setTopic('Why recycling is important for our planet');
+      selectGrade('C');
+    });
+
+    function setTopic(text) {
+      document.getElementById('topicInput').value = text;
+    }
+
+    function setAcademicLevel(level) {
+      academicLevel = level;
+      const msBtn = document.getElementById('levelMS');
+      const hsBtn = document.getElementById('levelHS');
+
+      if (level === 'Middle School') {
+        msBtn.className = "level-btn py-2 px-3 text-xs font-semibold rounded-xl border border-indigo-600 bg-indigo-50 text-indigo-700 transition-all flex items-center justify-center gap-2";
+        hsBtn.className = "level-btn py-2 px-3 text-xs font-semibold rounded-xl border border-slate-200 bg-white text-slate-600 hover:border-slate-300 transition-all flex items-center justify-center gap-2";
+      } else {
+        hsBtn.className = "level-btn py-2 px-3 text-xs font-semibold rounded-xl border border-indigo-600 bg-indigo-50 text-indigo-700 transition-all flex items-center justify-center gap-2";
+        msBtn.className = "level-btn py-2 px-3 text-xs font-semibold rounded-xl border border-slate-200 bg-white text-slate-600 hover:border-slate-300 transition-all flex items-center justify-center gap-2";
+      }
+    }
+
+    function selectGrade(grade) {
+      selectedGrade = grade;
+      const grades = ['F', 'D', 'C', 'B', 'A'];
+
+      grades.forEach(g => {
+        const btn = document.getElementById(`btnGrade${g}`);
+        if (g === grade) {
+          btn.classList.add('ring-2', 'ring-indigo-600', 'bg-indigo-50/50', 'scale-105');
+        } else {
+          btn.classList.remove('ring-2', 'ring-indigo-600', 'bg-indigo-50/50', 'scale-105');
+        }
+      });
+
+      document.getElementById('gradeDescription').innerText = gradeConfig[grade].description;
+    }
+
+    function showToast(message, isError = false) {
+      const toast = document.getElementById('toast');
+      const toastMessage = document.getElementById('toastMessage');
+      const toastIcon = document.getElementById('toastIcon');
+
+      toastMessage.innerText = message;
+      if (isError) {
+        toastIcon.className = "fa-solid fa-circle-exclamation text-red-400 text-base";
+      } else {
+        toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
+      }
+
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none');
+      }, 3500);
+    }
+
+    function copyEssayText() {
+      if (!currentEssayText) return;
+      
+      // Fallback copy mechanism
+      const textArea = document.createElement("textarea");
+      textArea.value = currentEssayText;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        const copyBtnText = document.getElementById('copyBtnText');
+        copyBtnText.innerText = "Copied!";
+        showToast("Essay copied to clipboard!");
+        setTimeout(() => { copyBtnText.innerText = "Copy Essay"; }, 2000);
+      } catch (err) {
+        showToast("Failed to copy text", true);
+      }
+      document.body.removeChild(textArea);
+    }
+
+    async function generateEssay() {
+      const topic = document.getElementById('topicInput').value.trim();
+      if (!topic) {
+        showToast("Please enter or select an essay topic!", true);
+        return;
+      }
+
+      // UI state transitions
+      document.getElementById('emptyState').classList.add('hidden');
+      document.getElementById('resultState').classList.add('hidden');
+      document.getElementById('loadingState').classList.remove('hidden');
+      document.getElementById('loadingGradeBadge').innerText = selectedGrade;
+      document.getElementById('generateBtn').disabled = true;
+
+      const systemPrompt = `You are an educational assistant for writing and grading essays. 
+Your goal is to demonstrate what an essay on a specific topic looks like at a target grade level (${selectedGrade}) for a ${academicLevel} student.
+
+Follow these strict rules for generating the Grade ${selectedGrade} essay:
+- Grade F: Include severe grammatical errors, almost zero proper capitalization (e.g. lowercase "i", starting sentences without capital letters), no punctuation or improper punctuation, extreme run-on sentences, off-topic or single sloppy paragraph.
+- Grade D: Frequent capitalization mistakes, weak grammar, simple vocabulary, basic run-on sentences, lack of paragraph transitions.
+- Grade C: Average writing. Mostly correct capitalization with occasional lapses, basic punctuation, simple sentence structure, generic arguments, 3 short basic paragraphs.
+- Grade B: Good writing. Proper capitalization, strong grammar, well-structured 3-4 paragraphs, clear thesis, good transition words.
+- Grade A: Exceptional writing. Sophisticated vocabulary, flawless capitalization and punctuation, compelling thesis, complex sentence structures, smooth paragraph transitions.
+
+Output MUST be a valid JSON object matching this schema EXACTLY:
+{
+  "essay": "Full text of the essay formatted with paragraphs separated by newlines",
+  "grammarScore": "Short score label e.g. '1/5' or '5/5'",
+  "grammarNotes": "1-2 sentences explaining capitalization, spelling, and mechanics in this essay",
+  "structureScore": "Short score label e.g. '2/5' or '5/5'",
+  "structureNotes": "1-2 sentences explaining the introduction, body paragraphs, and flow",
+  "contentScore": "Short score label e.g. '2/5' or '5/5'",
+  "contentNotes": "1-2 sentences explaining depth of ideas and arguments",
+  "tips": [
+    "Actionable tip #1 on how to improve this essay to a higher grade",
+    "Actionable tip #2 focusing on grammar or capitalization",
+    "Actionable tip #3 focusing on organization or depth"
+  ]
+}`;
+
+      const userQuery = `Write a sample essay at Grade Level '${selectedGrade}' for a '${academicLevel}' student on the topic: "${topic}". Provide the rubric feedback in JSON.`;
+
+      const apiKey = "";
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+      const payload = {
+        contents: [{ parts: [{ text: userQuery }] }],
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "OBJECT",
+            properties: {
+              "essay": { "type": "STRING" },
+              "grammarScore": { "type": "STRING" },
+              "grammarNotes": { "type": "STRING" },
+              "structureScore": { "type": "STRING" },
+              "structureNotes": { "type": "STRING" },
+              "contentScore": { "type": "STRING" },
+              "contentNotes": { "type": "STRING" },
+              "tips": {
+                "type": "ARRAY",
+                "items": { "type": "STRING" }
+              }
+            },
+            "propertyOrdering": ["essay", "grammarScore", "grammarNotes", "structureScore", "structureNotes", "contentScore", "contentNotes", "tips"]
+          }
+        }
+      };
+
+      // Fetch with exponential backoff
+      let retries = 3;
+      let delay = 1000;
+      let success = false;
+      let data = null;
+
+      while (retries > 0 && !success) {
+        try {
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (!response.ok) {
+            throw new Error(`Server status: ${response.status}`);
+          }
+
+          const result = await response.json();
+          const jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+          
+          if (jsonText) {
+            data = JSON.parse(jsonText);
+            success = true;
+          } else {
+            throw new Error("Invalid response format");
+          }
+        } catch (error) {
+          retries--;
+          if (retries > 0) {
+            await new Promise(res => setTimeout(res, delay));
+            delay *= 2;
+          } else {
+            console.error("API error:", error);
+            showToast("Failed to generate essay. Please try again.", true);
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('emptyState').classList.remove('hidden');
+            document.getElementById('generateBtn').disabled = false;
+            return;
+          }
+        }
+      }
+
+      if (data) {
+        currentEssayText = data.essay;
+
+        // Render Topic & Grade Badges
+        document.getElementById('displayTopicTitle').innerText = topic;
+        document.getElementById('displaySubtitle').innerText = `${academicLevel} • Target Grade ${selectedGrade}`;
+
+        const badgeDisplay = document.getElementById('badgeGradeDisplay');
+        badgeDisplay.innerText = selectedGrade;
+        badgeDisplay.className = `w-10 h-10 rounded-xl flex items-center justify-center text-xl font-extrabold text-white shadow-sm ${gradeConfig[selectedGrade].colorClass}`;
+
+        // Render Essay Text
+        document.getElementById('essayTextContent').innerText = data.essay;
+
+        // Render Rubric Scores & Notes
+        document.getElementById('grammarScoreBadge').innerText = data.grammarScore || '--';
+        document.getElementById('grammarNotes').innerText = data.grammarNotes || 'N/A';
+
+        document.getElementById('structureScoreBadge').innerText = data.structureScore || '--';
+        document.getElementById('structureNotes').innerText = data.structureNotes || 'N/A';
+
+        document.getElementById('contentScoreBadge').innerText = data.contentScore || '--';
+        document.getElementById('contentNotes').innerText = data.contentNotes || 'N/A';
+
+        // Render Tips List
+        const tipsContainer = document.getElementById('improvementTipsList');
+        tipsContainer.innerHTML = '';
+        if (data.tips && Array.isArray(data.tips)) {
+          data.tips.forEach(tip => {
+            const li = document.createElement('li');
+            li.innerText = tip;
+            tipsContainer.appendChild(li);
+          });
+        }
+
+        // Display results view
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('resultState').classList.remove('hidden');
+        showToast(`Grade ${selectedGrade} essay generated!`);
+      }
+
+      document.getElementById('generateBtn').disabled = false;
+    }
+  </script>
+</body>
+</html>
